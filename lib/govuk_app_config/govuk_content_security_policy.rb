@@ -11,7 +11,7 @@ module GovukContentSecurityPolicy
   # - https://csp-evaluator.withgoogle.com
   # - https://cspvalidator.org
 
-  GOVUK_DOMAINS = "'self' *.publishing.service.gov.uk localhost".freeze
+  GOVUK_DOMAINS = "'self' *.publishing.service.gov.uk *.dev.gov.uk localhost static-new-cookie-banner.herokuapp.com".freeze
 
   GOOGLE_ANALYTICS_DOMAINS = "www.google-analytics.com ssl.google-analytics.com stats.g.doubleclick.net".freeze
 
