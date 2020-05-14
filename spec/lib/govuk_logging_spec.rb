@@ -59,9 +59,10 @@ RSpec.describe GovukLogging do
 
       GovukLogging.configure
       middleware = ::ActionDispatch::DebugExceptions.new(Rails.application)
-      begin 
+      begin
         middleware.call({})
-      rescue Exception 
+      ensure
+        $stderr.rewind
         expect($stderr.read).to eql("")
       end
     end
