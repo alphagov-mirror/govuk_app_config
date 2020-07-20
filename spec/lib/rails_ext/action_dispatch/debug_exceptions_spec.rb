@@ -40,11 +40,13 @@ RSpec.describe ::GovukLogging::RailsExt::ActionDispatch do
       end
       instance = FakeDebugExceptions.new
 
+      # rubocop:disable Lint/AmbiguousBlockAssociation
       expect {
         described_class.monkey_patch_log_error(FakeDebugExceptions)
       }.to change {
         instance.method(:log_error)
       }
+      # rubocop:enable Lint/AmbiguousBlockAssociation
     end
   end
 end
