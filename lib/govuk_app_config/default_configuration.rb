@@ -1,4 +1,4 @@
-require "time"
+require "govuk_app_config/govuk_data_sync"
 
 class DefaultConfiguration
   def initialize(config)
@@ -50,27 +50,17 @@ class DefaultConfiguration
       GovukStatsd.increment("error_reports_failed")
     }
 
+    data_sync = GovukDataSync.new(ENV["GOVUK_DATA_SYNC_PERIOD"])
+
     config.should_capture = lambda do |error_or_event|
       data_sync_ignored_error = error_or_event.is_a?(PG::Error) ||
         (error_or_event.respond_to?(:cause) && error_or_event.cause.is_a?(PG::Error))
-      data_sync_time = in_data_sync?(ENV["GOVUK_DATA_SYNC_PERIOD"])
 
-      !(data_sync_ignored_error && data_sync_time)
+      if !data_sync.in_progress?
+        true
+      else
+        !data_sync_ignored_error
+      end
     end
-  end
-
-private
-
-  def in_data_sync?(time_range)
-    from, to = time_range.split("-").map { |time| Time.parse(time) }
-    hour_is_in_range = Time.now.hour >= from.hour || Time.now.hour <= to.hour
-    minute_is_in_range = if Time.now.hour == from.hour
-                           Time.now.min >= from.min
-                         elsif Time.now.hour == to.hour
-                           Time.now.min <= to.min
-                         else
-                           true
-                         end
-    hour_is_in_range && minute_is_in_range
   end
 end
