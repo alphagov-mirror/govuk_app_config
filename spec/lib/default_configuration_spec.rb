@@ -47,15 +47,24 @@ RSpec.describe DefaultConfiguration do
     module PG; class Error; end; end
 
     it "captures PostgreSQL errors that occur outside of the data sync time window" do
-      expect(error_of_type(PG::Error.new).occurring_at(hour: 21).should_capture).to eq(true)
+      ClimateControl.modify GOVUK_DATA_SYNC_PERIOD: "22:30-8:30" do
+        expect(error_of_type(PG::Error.new).occurring_at(hour: 21, min: 59).should_capture).to eq(true)
+        expect(error_of_type(PG::Error.new).occurring_at(hour: 22, min: 29).should_capture).to eq(true)
+        expect(error_of_type(PG::Error.new).occurring_at(hour: 8, min: 31).should_capture).to eq(true)
+      end
     end
 
     it "ignores PostgreSQL errors that occur during the data sync time window" do
-      expect(error_of_type(PG::Error.new).occurring_at(hour: 22).should_capture).to eq(false)
+      ClimateControl.modify GOVUK_DATA_SYNC_PERIOD: "23:00-2:00" do
+        expect(error_of_type(PG::Error.new).occurring_at(hour: 23).should_capture).to eq(false)
+        expect(error_of_type(PG::Error.new).occurring_at(hour: 2).should_capture).to eq(false)
+      end
     end
 
     it "captures non-PostgreSQL errors that occur during the data sync time window" do
-      expect(error_of_type(StandardError.new).occurring_at(hour: 22).should_capture).to eq(true)
+      ClimateControl.modify GOVUK_DATA_SYNC_PERIOD: "7:00-11:00" do
+        expect(error_of_type(StandardError.new).occurring_at(hour: 8).should_capture).to eq(true)
+      end
     end
 
     def error_of_type(error)

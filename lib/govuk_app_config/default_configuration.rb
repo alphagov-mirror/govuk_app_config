@@ -1,3 +1,5 @@
+require "time"
+
 class DefaultConfiguration
   def initialize(config)
     config.before_send = proc { |e|
@@ -51,9 +53,24 @@ class DefaultConfiguration
     config.should_capture = lambda do |error_or_event|
       data_sync_ignored_error = error_or_event.is_a?(PG::Error) ||
         (error_or_event.respond_to?(:cause) && error_or_event.cause.is_a?(PG::Error))
-      data_sync_time = Time.now.hour >= 22 || Time.now.hour < 8
+      data_sync_time = in_data_sync?(ENV["GOVUK_DATA_SYNC_PERIOD"])
 
       !(data_sync_ignored_error && data_sync_time)
     end
+  end
+
+private
+
+  def in_data_sync?(time_range)
+    from, to = time_range.split("-").map { |time| Time.parse(time) }
+    hour_is_in_range = Time.now.hour >= from.hour || Time.now.hour <= to.hour
+    minute_is_in_range = if Time.now.hour == from.hour
+                           Time.now.min >= from.min
+                         elsif Time.now.hour == to.hour
+                           Time.now.min <= to.min
+                         else
+                           true
+                         end
+    hour_is_in_range && minute_is_in_range
   end
 end
