@@ -1,5 +1,5 @@
 require "sentry-raven"
-require "govuk_app_config/default_configuration"
+require "govuk_app_config/govuk_error/configuration"
 require "govuk_app_config/govuk_statsd"
 
 module GovukError
@@ -13,7 +13,7 @@ module GovukError
   end
 
   def self.init
-    @raven_configuration = DefaultConfiguration.new(Raven.configuration)
+    @raven_configuration = Configuration.new(Raven.configuration)
   end
 
   def self.configure
