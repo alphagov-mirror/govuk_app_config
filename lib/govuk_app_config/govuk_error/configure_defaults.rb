@@ -54,7 +54,11 @@ module GovukError
       }
 
       config.should_capture = lambda do |error_or_event|
-        data_sync_ignored_error = error_or_event.class == "PG::Error"
+        exception_chain = Raven::Utils::ExceptionCauseChain.exception_to_array(error_or_event)
+        data_sync_ignored_error = exception_chain.reduce(false) do |memo, exception|
+          memo || exception.class == "PG::Error" ||
+            (exception.respond_to?(:cause) && exception.cause.class == "PG::Error")
+        end
         data_sync_time = Time.now.hour >= 22 || Time.now.hour < 8
 
         !(data_sync_ignored_error && data_sync_time)
