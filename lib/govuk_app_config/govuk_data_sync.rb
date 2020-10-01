@@ -38,6 +38,8 @@ class GovukDataSync
 
 private
 
+  # `from`/`to` times are expected in UTC, based on:
+  # https://github.com/alphagov/govuk-puppet/blob/b588e4ade996e97b8975e69cb00800521fff4a48/modules/govuk_envsys/files/etc/environment#L3
   def in_time_range?(from, to)
     hour_is_in_range = Time.now.hour >= from.hour || Time.now.hour <= to.hour
     minute_is_in_range = if Time.now.hour == from.hour
