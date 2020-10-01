@@ -1,13 +1,35 @@
 require "time"
 
 class GovukDataSync
+  class MalformedDataSyncPeriod < StandardError
+    attr_reader :invalid_value
+
+    def initialize(invalid_value)
+      @invalid_value = invalid_value
+    end
+
+    def message
+      "\"#{invalid_value}\" is not a valid value (should be of form '22:00-03:00')."
+    end
+  end
+
+  class MissingDataSyncPeriod < StandardError
+    def message
+      "You must specify a ENV['GOVUK_DATA_SYNC_PERIOD'] (should be of form '22:00-03:00')."
+    end
+  end
+
   attr_reader :from, :to
 
   def initialize(govuk_data_sync_period)
-    parts = govuk_data_sync_period&.split("-")
-    @from, @to = parts.map { |time| Time.parse(time) } if parts&.count == 2
+    raise MissingDataSyncPeriod if govuk_data_sync_period.nil?
+
+    parts = govuk_data_sync_period.split("-")
+    raise MalformedDataSyncPeriod, govuk_data_sync_period unless parts.count == 2
+
+    @from, @to = parts.map { |time| Time.parse(time) }
   rescue ArgumentError
-    # At least one of the parts was malformed. Leave @from/@to as false.
+    raise MalformedDataSyncPeriod, govuk_data_sync_period
   end
 
   def in_progress?

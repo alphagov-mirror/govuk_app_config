@@ -3,18 +3,28 @@ require "rails"
 require "govuk_app_config/govuk_data_sync"
 
 RSpec.describe GovukDataSync do
+  describe ".initialize" do
+    it "raises an exception if data sync time period is not defined" do
+      expect { GovukDataSync.new(nil) }.to raise_error(GovukDataSync::MissingDataSyncPeriod)
+    end
+
+    it "raises an exception if data sync time period is malformed" do
+      invalid_values = [
+        "foo",
+        "22:00",
+        "10:10-10:10-10:10",
+        "3:00-fish",
+      ]
+      invalid_values.each do |val|
+        expect { GovukDataSync.new(val) }.to raise_error(
+          GovukDataSync::MalformedDataSyncPeriod,
+          "\"#{val}\" is not a valid value (should be of form '22:00-03:00').",
+        )
+      end
+    end
+  end
+
   describe ".in_progress?" do
-    it "returns false if data sync time period is not defined" do
-      expect(GovukDataSync.new(nil).in_progress?).to eq(false)
-    end
-
-    it "returns false if data sync time period is malformed" do
-      expect(GovukDataSync.new("foo").in_progress?).to eq(false)
-      expect(GovukDataSync.new("22:00").in_progress?).to eq(false)
-      expect(GovukDataSync.new("10:10-10:10-10:10").in_progress?).to eq(false)
-      expect(GovukDataSync.new("3:00-fish").in_progress?).to eq(false)
-    end
-
     it "returns false if we are outside of the time range" do
       data_sync = GovukDataSync.new("22:30-8:30")
       at(hour: 21) { expect(data_sync.in_progress?).to eq(false) }
