@@ -1,6 +1,6 @@
 require "sentry-raven"
 require "govuk_app_config/govuk_statsd"
-require "govuk_app_config/govuk_error/raven_delegator"
+require "govuk_app_config/govuk_error/configuration"
 
 module GovukError
   def self.notify(exception_or_message, args = {})
@@ -13,6 +13,7 @@ module GovukError
   end
 
   def self.configure
-    yield RavenDelegator.new(Raven.configuration)
+    @config ||= Configuration.new(Raven.configuration)
+    yield @config
   end
 end
