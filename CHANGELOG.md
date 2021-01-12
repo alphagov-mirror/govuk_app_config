@@ -2,6 +2,10 @@
 
 * Add new Redis healthcheck and relevant tests (https://github.com/alphagov/govuk_app_config/pull/183)
 
+# 2.8.2
+
+* Allow apps to configure the host and protocol for Statsd ([#180](https://github.com/alphagov/govuk_app_config/pull/180)
+
 # 2.8.1
 
 * Add `GdsApi::ContentStore::ItemNotFound` to `data_sync_excluded_exceptions` (https://github.com/alphagov/govuk_app_config/pull/178)
